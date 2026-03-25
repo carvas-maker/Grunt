@@ -8,13 +8,11 @@ import net.spartanb312.grunteon.obfuscator.process.resource.JarResources
 import net.spartanb312.grunteon.obfuscator.process.resource.WorkResources
 import net.spartanb312.grunteon.obfuscator.process.transformers.TestTransformer
 import net.spartanb312.grunteon.obfuscator.process.transformers.encrypt.number.NumberBasicEncrypt
-import net.spartanb312.grunteon.obfuscator.process.transformers.rename.ClassRenameTransformer
+import net.spartanb312.grunteon.obfuscator.process.transformers.rename.ClassRenamer
+import net.spartanb312.grunteon.obfuscator.process.transformers.rename.LocalVarRenamer
 import net.spartanb312.grunteon.obfuscator.util.Logger
 import net.spartanb312.grunteon.obfuscator.util.filters.buildClassNamePredicates
-import net.spartanb312.grunteon.obfuscator.util.logging.SimpleLogger
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.io.path.Path
 import kotlin.system.measureTimeMillis
 
@@ -28,10 +26,7 @@ const val SUBTITLE = "build 260324"
 const val GITHUB = "https://github.com/SpartanB312/Grunt"
 
 fun main() {
-    Logger = SimpleLogger(
-        "Grunteon",
-        "logs/${SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(Date())}.txt"
-    )
+
     println(
         """
              ________  __________   ____ ___   _______    ___________
@@ -59,10 +54,9 @@ fun main() {
         val instance = emptyConfig.runPipeline(
             TestTransformer(),
             NumberBasicEncrypt(),
-            ClassRenameTransformer(),
+            LocalVarRenamer(),
             TestTransformer(),
         )
-        instance.init()
         instance.execute()
     }.also { println("$it ms") }
 }
@@ -87,15 +81,15 @@ class Grunteon(
     inline val libraries get() = workRes.libraries
     inline val allClasses get() = workRes.allClasses
 
-    fun init() {
+    fun execute() {
         Logger.info("Executing obfuscating job...")
 
         // Reading input jar
-        input = JarResources(Path("I:/code/obf/Grunteon/run/AT260127/engine/boar-main.jar"))
+        input = JarResources(Path("input.jar"))
         input.readInput()
         // Reading working res
         workRes = WorkResources(input)
-        workRes.readLibs(listOf("I:/code/obf/Grunteon/run/AT260127/libs"))//configGroup.libs)
+        workRes.readLibs(listOf("libs/"))//configGroup.libs)
         // Output dumper
         output = JarDumper(
             jarResources = input,
@@ -110,9 +104,7 @@ class Grunteon(
             fileRemovePrefix = configGroup.fileRemovePrefix,
             fileRemoveSuffix = configGroup.fileRemoveSuffix,
         )
-    }
 
-    fun execute() {
         // TODO: Profiler
         context(workRes, input) {
             contextOf<Grunteon>().pipeline.execute()
