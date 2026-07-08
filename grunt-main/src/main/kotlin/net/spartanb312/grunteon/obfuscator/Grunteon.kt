@@ -12,16 +12,11 @@ import net.spartanb312.grunteon.obfuscator.process.transformers.optimize.DeadCod
 import net.spartanb312.grunteon.obfuscator.process.transformers.optimize.EnumOptimize
 import net.spartanb312.grunteon.obfuscator.process.transformers.optimize.KotlinClassShrink
 import net.spartanb312.grunteon.obfuscator.process.transformers.optimize.SourceDebugInfoHide
-import net.spartanb312.grunteon.obfuscator.process.transformers.optimize.StringEqualsOptimize
 import net.spartanb312.grunteon.obfuscator.process.transformers.rename.ClassRenamer
 import net.spartanb312.grunteon.obfuscator.process.transformers.rename.LocalVarRenamer
 import net.spartanb312.grunteon.obfuscator.util.Logger
-import net.spartanb312.grunteon.obfuscator.util.cryptography.getSeed
-import net.spartanb312.grunteon.obfuscator.util.cryptography.nextInt
-import net.spartanb312.grunteon.obfuscator.util.cryptography.toRandom
 import net.spartanb312.grunteon.obfuscator.util.filters.buildClassNamePredicates
 import net.spartanb312.grunteon.obfuscator.util.logging.SimpleLogger
-import java.io.File
 import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.*
@@ -76,7 +71,6 @@ fun main() {
             KotlinClassShrink(),
             ClassShrink(),
             SourceDebugInfoHide(),
-            StringEqualsOptimize(),
             NumberBasicEncrypt(),
             LocalVarRenamer(),
             ClassRenamer(),
@@ -104,11 +98,9 @@ class Grunteon(
     /**
      * Resources
      */
-    lateinit var output: JarDumper
     lateinit var workRes: WorkResources
     val mappingApplier = MappingApplier(this)
     val baseSeed get() = if (configGroup.controllableRandom) configGroup.inputSeed else Random.nextInt().toString()
-    val generalRandom = getSeed(configGroup.input, configGroup.output).toRandom()
 
     fun init() {
         Logger.info("Executing obfuscating job...")
@@ -130,21 +122,6 @@ class Grunteon(
         }
 
         workRes = WorkResources.read(inputRoot, outputRoot.flatMap { resolvePath(it) })
-
-        // Output dumper
-        output = JarDumper(
-            instance = this,
-            outputFile = File("obftest/AT/engine/boar-main.jar"),
-            forceComputeMax = configGroup.forceComputeMax,
-            missingCheck = configGroup.missingCheck,
-            corruptHeader = configGroup.corruptHeaders,
-            corruptCRC32 = configGroup.corruptCRC32,
-            removeTimestamps = configGroup.removeTimeStamps,
-            compressionLevel = configGroup.compressionLevel,
-            archiveComment = configGroup.archiveComment,
-            fileRemovePrefix = configGroup.fileRemovePrefix,
-            fileRemoveSuffix = configGroup.fileRemoveSuffix,
-        )
     }
 
     fun execute() {
@@ -153,7 +130,7 @@ class Grunteon(
             contextOf<Grunteon>().pipeline.execute()
         }
 
-        output.dumpJar()
+        JarDumper.dumpJar(Path("obftest/AT/engine/boar-main.jar"))
     }
 
     val mixinExPredicate = buildClassNamePredicates(configGroup.mixinExclusions)
