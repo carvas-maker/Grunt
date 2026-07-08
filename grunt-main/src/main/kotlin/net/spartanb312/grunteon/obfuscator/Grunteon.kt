@@ -11,7 +11,10 @@ import net.spartanb312.grunteon.obfuscator.process.transformers.rename.ClassRena
 import net.spartanb312.grunteon.obfuscator.process.transformers.rename.LocalVarRenamer
 import net.spartanb312.grunteon.obfuscator.util.Logger
 import net.spartanb312.grunteon.obfuscator.util.filters.buildClassNamePredicates
+import net.spartanb312.grunteon.obfuscator.util.logging.SimpleLogger
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.system.measureTimeMillis
 
@@ -25,7 +28,10 @@ const val SUBTITLE = "build 260324"
 const val GITHUB = "https://github.com/SpartanB312/Grunt"
 
 fun main() {
-
+    Logger = SimpleLogger(
+        "Grunteon",
+        "logs/${SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(Date())}.txt"
+    )
     println(
         """
              ________  __________   ____ ___   _______    ___________
@@ -55,6 +61,7 @@ fun main() {
             LocalVarRenamer(),
             ClassRenamer(),
         )
+        instance.init()
         val instance = emptyConfig.runPipeline(pipeline)
         instance.execute()
     }.also { println("$it ms") }
@@ -84,7 +91,7 @@ class Grunteon(
     inline val libraries get() = workRes.libraries
     inline val allClasses get() = workRes.allClasses
 
-    fun execute() {
+    fun init() {
         Logger.info("Executing obfuscating job...")
 
         // Reading input jar
@@ -107,7 +114,9 @@ class Grunteon(
             fileRemovePrefix = configGroup.fileRemovePrefix,
             fileRemoveSuffix = configGroup.fileRemoveSuffix,
         )
+    }
 
+    fun execute() {
         // TODO: Profiler
         context(workRes, input) {
             contextOf<Grunteon>().pipeline.execute()
