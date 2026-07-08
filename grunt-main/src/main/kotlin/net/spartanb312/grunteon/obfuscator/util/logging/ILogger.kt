@@ -20,5 +20,4 @@ interface ILogger {
     fun raw(msg: String, level: String) {
     }
 
-    class NoOp : ILogger
 }

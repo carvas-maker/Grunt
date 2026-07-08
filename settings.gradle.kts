@@ -5,7 +5,6 @@ include(":grunt-bootstrap")
 
 // Components
 include(":grunt-main")
-include(":grunt-testcase")
 include(":grunt-yapyap")
 
 pluginManagement {
